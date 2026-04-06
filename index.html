@@ -173,7 +173,21 @@
     </div>
 
     <script>
-        const messages = [
+function startSurprise() {
+    // 解決 Chrome/Safari 音訊鎖定問題
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // 如果 audioCtx 處於 suspended 狀態（Safari 常見），將其喚醒
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+
+    const m = document.getElementById('month').value;
+    const d = document.getElementById('day').value;
+    // ... 其餘代碼 ...
+}       
+ const messages = [
              "「小王子說：『重要的東西，用眼睛是看不見的。』✨",
             "Amy，生日快樂！🎂",
             "願妳在忙碌的改卷日子中，依然能找到讓自己開心的微光。",
