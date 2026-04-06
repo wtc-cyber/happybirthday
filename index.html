@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queen Amy | The Little Prince's Gift</title>
+
+    <style>
+        /* [區段一：現代星空外觀設定] */
+        :root {
+            --space-dark: #050505;      /* 深邃黑 */
+            --gold: #d4af37;            /* 小王子金 */
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background-color: var(--space-dark);
+            background-image: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
+            font-family: -apple-system, "SF Pro Display", "微軟正黑體", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            color: #ffffff;
+        }
+
+        /* 現代霧面玻璃卡片 */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 50px 30px;
+            border-radius: 40px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+            text-align: center;
+            width: 380px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+            position: relative;
+        }
+
+        h1 { 
+            color: var(--gold); 
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        /* 日期選擇區：只顯示月同日 */
+        .date-section {
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 20px;
+        }
+
+        label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .select-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        select {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            padding: 10px 15px;
+            color: var(--gold);
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+            transition: 0.3s;
+            appearance: none; /* 隱藏原生箭頭 */
+            min-width: 80px;
+            text-align: center;
+        }
+
+        select:focus {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        /* 打字機區 */
+        #typing-text {
+            min-height: 100px;
+            color: #ccc;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            margin: 25px 0;
+            text-align: left;
+            border-left: 1px solid var(--gold);
+            padding-left: 20px;
+            font-weight: 300;
+        }
+
+        .btn-main {
+            background: white;
+            color: black;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-top: 10px;
+        }
+
+        .btn-main:hover { 
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        /* 飄浮物體動畫 */
+        .float-item {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+            animation: floatUp 6s linear forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg) scale(0.3); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-110vh) rotate(180deg) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div style="font-size: 40px; margin-bottom: 10px;">👑🌹</div>
+        <h1>For Queen Amy.</h1>
+        
+        <div class="date-section" id="inputArea">
+            <label>請選擇妳的專屬紀念日</label>
+            <div class="select-group">
+                <select id="month">
+                    <script>
+                        for(let i=1; i<=12; i++) {
+                            let selected = i === 4 ? 'selected' : '';
+                            document.write(`<option value="${i}" ${selected}>${i}月</option>`);
+                        }
+                    </script>
+                </select>
+                <select id="day">
+                    <script>
+                        for(let i=1; i<=31; i++) {
+                            let selected = i === 6 ? 'selected' : '';
+                            document.write(`<option value="${i}" ${selected}>${i}日</option>`);
+                        }
+                    </script>
+                </select>
+            </div>
+        </div>
+
+        <div id="typing-text">小王子在 B612 星球守候著...<br>等待女皇開啟這份星際祝福。</div>
+
+        <button class="btn-main" id="startBtn" onclick="startSurprise()">開啟驚喜</button>
+    </div>
+
+    <script>
+        const messages = [
+             "「小王子說：『重要的東西，用眼睛是看不見的。』✨",
+            "Amy，生日快樂！🎂",
+            "願妳在忙碌的改卷日子中，依然能找到讓自己開心的微光。",
+            "願妳這一年，少一點焦慮，多一點自在。",
+            "Happy Birthday to a truly Brave Soul! 🌟"
+        ];
+
+        let audioCtx;
+        
+        /**
+         * 無限循環電音生日歌 (Web Audio API)
+         */
+        function playLoopingBday() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            const notes = [
+                261.63, 261.63, 293.66, 261.63, 349.23, 329.63, 
+                261.63, 261.63, 293.66, 261.63, 392.00, 349.23, 
+                261.63, 261.63, 523.25, 440.00, 349.23, 329.63, 293.66, 
+                466.16, 466.16, 440.00, 349.23, 392.00, 349.23  
+            ];
+
+            const rhythms = [
+                0.4, 0.4, 0.8, 0.8, 0.8, 1.6,
+                0.4, 0.4, 0.8, 0.8, 0.8, 1.6,
+                0.4, 0.4, 0.8, 0.8, 0.8, 0.8, 1.6,
+                0.4, 0.4, 0.8, 0.8, 0.8, 1.6
+            ];
+
+            let currentTime = audioCtx.currentTime;
+            const totalDuration = rhythms.reduce((a, b) => a + b, 0);
+
+            function playSequence() {
+                let timeOffset = 0;
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'triangle'; 
+                    osc.frequency.setValueAtTime(freq, currentTime + timeOffset);
+                    
+                    gain.gain.setValueAtTime(0.06, currentTime + timeOffset);
+                    gain.gain.exponentialRampToValueAtTime(0.001, currentTime + timeOffset + rhythms[i] - 0.05);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start(currentTime + timeOffset);
+                    osc.stop(currentTime + timeOffset + rhythms[i]);
+                    
+                    timeOffset += rhythms[i];
+                });
+
+                // 排程下一輪播放
+                setTimeout(playSequence, totalDuration * 1000);
+                currentTime += totalDuration;
+            }
+
+            playSequence();
+        }
+
+        function startSurprise() {
+            // 獲取選擇的日期
+            const m = document.getElementById('month').value;
+            const d = document.getElementById('day').value;
+            
+            // 插入到打字機訊息第一行
+            messages.unshift(`在這個美好的 ${m}月${d}日...`);
+
+            playLoopingBday();
+
+            // 隱藏輸入區同按鈕
+            document.getElementById('inputArea').style.display = 'none';
+            document.getElementById('startBtn').style.display = 'none';
+
+            typeWriter(0);
+
+            // 每 200ms 噴發一個星空元素
+            setInterval(spawnItem, 200);
+        }
+
+        function typeWriter(index) {
+            const display = document.getElementById('typing-text');
+            if (index === 0) display.innerHTML = ""; 
+            
+            if (index < messages.length) {
+                display.innerHTML += messages[index] + "<br>";
+                setTimeout(() => typeWriter(index + 1), 1000); 
+            }
+        }
+
+        function spawnItem() {
+            const icons = ['🌹', '⭐', '👑', '🌙', '💫', '🦊'];
+            const item = document.createElement('div');
+            item.className = 'float-item';
+            item.innerText = icons[Math.floor(Math.random() * icons.length)];
+            
+            item.style.left = Math.random() * 100 + 'vw';
+            item.style.top = '100vh';
+            item.style.fontSize = Math.random() * 20 + 15 + 'px';
+            
+            document.body.appendChild(item);
+            setTimeout(() => item.remove(), 6000);
+        }
+    </script>
+</body>
+</html>
