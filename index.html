@@ -173,6 +173,7 @@
     </div>
 
 <script>
+
     const messages = [
         "「小王子說：『重要的東西，用眼睛是看不見的。』✨",
         "Amy，生日快樂！🎂",
@@ -184,113 +185,67 @@
     let audioCtx;
     let isPlaying = false;
 
-    /**
-     * 無限循環生日歌 - 優化音軌調度
-     */
     function playLoopingBday() {
-        const notes = [
-            261.63, 261.63, 293.66, 261.63, 349.23, 329.63, 
-            261.63, 261.63, 293.66, 261.63, 392.00, 349.23, 
-            261.63, 261.63, 523.25, 440.00, 349.23, 329.63, 293.66, 
-            466.16, 466.16, 440.00, 349.23, 392.00, 349.23  
-        ];
-        const rhythms = [
-            0.4, 0.4, 0.8, 0.8, 0.8, 1.6,
-            0.4, 0.4, 0.8, 0.8, 0.8, 1.6,
-            0.4, 0.4, 0.8, 0.8, 0.8, 0.8, 1.6,
-            0.4, 0.4, 0.8, 0.8, 0.8, 1.6
-        ];
+        try {
+            const notes = [261.63, 261.63, 293.66, 261.63, 349.23, 329.63, 261.63, 261.63, 293.66, 261.63, 392.00, 349.23];
+            const rhythms = [0.4, 0.4, 0.8, 0.8, 0.8, 1.6, 0.4, 0.4, 0.8, 0.8, 0.8, 1.6];
+            const totalDuration = rhythms.reduce((a, b) => a + b, 0);
 
-        const totalDuration = rhythms.reduce((a, b) => a + b, 0);
-
-        function scheduleNextLoop(startTime) {
-            let timeOffset = 0;
-            notes.forEach((freq, i) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                
-                osc.type = 'triangle'; 
-                osc.frequency.setValueAtTime(freq, startTime + timeOffset);
-                
-                // 漸強漸弱處理，減少「啪嗒」雜音
-                gain.gain.setValueAtTime(0, startTime + timeOffset);
-                gain.gain.linearRampToValueAtTime(0.06, startTime + timeOffset + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.001, startTime + timeOffset + rhythms[i] - 0.02);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                osc.start(startTime + timeOffset);
-                osc.stop(startTime + timeOffset + rhythms[i]);
-                
-                timeOffset += rhythms[i];
-            });
-
-            // 在當前循環結束前 100ms 預排下一次，確保無縫銜接
-            setTimeout(() => scheduleNextLoop(startTime + totalDuration), (totalDuration * 1000) - 100);
-        }
-
-        scheduleNextLoop(audioCtx.currentTime + 0.1);
+            function play() {
+                let now = audioCtx.currentTime;
+                notes.forEach((f, i) => {
+                    let osc = audioCtx.createOscillator();
+                    let g = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(f, now);
+                    g.gain.setValueAtTime(0.06, now);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + rhythms[i] - 0.05);
+                    osc.connect(g);
+                    g.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + rhythms[i]);
+                    now += rhythms[i];
+                });
+                setTimeout(play, totalDuration * 1000);
+            }
+            play();
+        } catch(e) { console.error("Audio error:", e); }
     }
 
     function startSurprise() {
-        // 1. 強制喚醒音訊環境 (針對 Chrome/Safari 嚴格政策)
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
+        console.log("Button clicked!"); // 測試按鈕有無反應
         
-        // Safari 必須在 click 事件內立即 resume
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
+        try {
+            // 處理音訊
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
 
-        if (isPlaying) return;
-        isPlaying = true;
+            if (isPlaying) return;
+            isPlaying = true;
 
-        // 2. 獲取日期
-        const m = document.getElementById('month').value;
-        const d = document.getElementById('day').value;
-        messages.unshift(`在這個美好的 ${m}月${d}日...`);
+            // 獲取日期
+            const m = document.getElementById('month').value;
+            const d = document.getElementById('day').value;
+            messages.unshift(`在這個美好的 ${m}月${d}日...`);
 
-        // 3. 執行視覺切換
-        const inputArea = document.getElementById('inputArea');
-        const startBtn = document.getElementById('startBtn');
-        
-        // 使用淡出效果
-        inputArea.style.opacity = '0';
-        startBtn.style.opacity = '0';
-        
-        setTimeout(() => {
-            inputArea.style.display = 'none';
-            startBtn.style.display = 'none';
-            
+            // UI 隱藏
+            document.getElementById('inputArea').style.display = 'none';
+            document.getElementById('startBtn').style.display = 'none';
+
             playLoopingBday();
             typeWriter(0);
-            // 啟動噴發，限制噴發頻率避免手機過熱
-            const spawnTimer = setInterval(spawnItem, 250);
-        }, 500);
+            setInterval(spawnItem, 250);
+        } catch (err) {
+            alert("代碼執行出錯: " + err.message);
+        }
     }
 
     function typeWriter(index) {
         const display = document.getElementById('typing-text');
-        if (index === 0) {
-            display.innerHTML = "";
-            display.style.borderLeft = "2px solid #d4af37";
-        }
-        
+        if (index === 0) display.innerHTML = "";
         if (index < messages.length) {
-            const line = document.createElement('div');
-            line.style.marginBottom = "10px";
-            line.style.opacity = "0";
-            line.style.transition = "opacity 0.8s ease";
-            line.innerText = messages[index];
-            display.appendChild(line);
-            
-            // 強制重繪觸發動畫
-            setTimeout(() => line.style.opacity = "1", 50);
-            
-            display.scrollTop = display.scrollHeight;
-            setTimeout(() => typeWriter(index + 1), 1500); 
+            display.innerHTML += messages[index] + "<br>";
+            setTimeout(() => typeWriter(index + 1), 1200);
         }
     }
 
@@ -299,20 +254,12 @@
         const item = document.createElement('div');
         item.className = 'float-item';
         item.innerText = icons[Math.floor(Math.random() * icons.length)];
-        
-        const startX = Math.random() * 100;
-        item.style.left = startX + 'vw';
+        item.style.left = Math.random() * 100 + 'vw';
         item.style.top = '100vh';
-        item.style.fontSize = (Math.random() * 15 + 20) + 'px';
-        // 加入隨機旋轉感
-        item.style.filter = `hue-rotate(${Math.random() * 30}deg)`;
-        
+        item.style.position = 'absolute';
         document.body.appendChild(item);
-
-        // 動畫結束後徹底移除，釋放記憶體
-        item.addEventListener('animationend', () => {
-            item.remove();
-        });
+        setTimeout(() => item.remove(), 6000);
     }
+
 </script></body>
 </html>
